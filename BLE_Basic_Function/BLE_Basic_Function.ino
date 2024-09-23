@@ -2,9 +2,9 @@
 #include <BLEScan.h>
 #include <BLEAdvertisedDevice.h>
 
-int scanTime = 5;  // Scan duration in seconds
+int scanTime = 5;  
 BLEScan *pBLEScan;
-BLEAdvertisedDevice *myDevice;  // To store the device to connect
+BLEAdvertisedDevice *myDevice; 
 
 class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
 public:
@@ -17,24 +17,22 @@ public:
     if (advertisedDevice.getAddress().toString() == inputAddress) {
       Serial.println("Found my device! Connecting...");
       myDevice = new BLEAdvertisedDevice(advertisedDevice);
-      pBLEScan->stop();  // Stop scanning
+      pBLEScan->stop(); 
     }
   }
 
 private:
-  const String &inputAddress;  // Use const reference
-};
+  const String &inputAddress; 
 
 void BLE_SCAN_CONFIG() {
   BLEDevice::init("");
-  pBLEScan = BLEDevice::getScan();  // Create new scan
-  pBLEScan->setActiveScan(true);  // Active scan uses more power, but gets results faster
+  pBLEScan = BLEDevice::getScan();  
+  pBLEScan->setActiveScan(true);  
   pBLEScan->setInterval(100);
-  pBLEScan->setWindow(99);  // Less or equal to setInterval value
+  pBLEScan->setWindow(99);  
 }
 
 bool isValidMacAddress(const String& address) {
-  // Check if the MAC address format is valid
   return address.length() == 17 && address.indexOf(':') > -1;
 }
 
@@ -43,27 +41,23 @@ void BLE_CONNECT() {
     Serial.printf("Connecting to device: %s\n", myDevice->toString().c_str());
     
     BLEClient *pClient = BLEDevice::createClient();
-    unsigned long connectStartTime = millis();  // Record the connection start time
+    unsigned long connectStartTime = millis();  
     
-    // Attempt to connect to the device, max 10 seconds
     while (millis() - connectStartTime < 10000) {
       if (pClient->connect(myDevice)) {
         Serial.println("Connected to device!");
         
-        // Here you can add more logic to handle operations after connecting
-
-        // Disconnect after operations
+  
         pClient->disconnect();
         Serial.println("Disconnected from device.");
-        delete pClient;  // Free the client
-        return;  // Return after successful connection
+        delete pClient;  
+        return;  
       }
     }
     
-    // Timeout handling
     Serial.println("Connection timed out! Please input the address again.");
-    myDevice = nullptr;  // Reset device
-    delete pClient;  // Ensure the client is freed
+    myDevice = nullptr;  
+    delete pClient;  
   } else {
     Serial.println("No device found to connect.");
   }
@@ -78,7 +72,7 @@ void BLE_SCAN_DRIVER(const String &inputAddress) {
   Serial.print("Devices found: ");
   Serial.println(pBLEScan->getResults()->getCount());
   Serial.println("Scan done!");
-  pBLEScan->clearResults();  // Delete results from BLEScan buffer to release memory
+  pBLEScan->clearResults(); 
   delay(2000);
 }
 
@@ -95,10 +89,10 @@ void scanAndConnect(const String &address) {
 
 void Input_BLEAddress(){
     if (Serial.available() > 0) {
-    String inputAddress = Serial.readStringUntil('\n');  // Read user input address
-    inputAddress.trim();  // Remove extra spaces
+    String inputAddress = Serial.readStringUntil('\n');  
+    inputAddress.trim();  
+  
     
-    // Call the scan and connect function
     scanAndConnect(inputAddress);
   }
 }
