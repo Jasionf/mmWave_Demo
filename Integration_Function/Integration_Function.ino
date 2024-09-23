@@ -9,7 +9,7 @@
 #include "WiFi.h"
 #include <string>
 
-// 定义常量
+
 #define ESPNOW_WIFI_CHANNEL 0
 #define NO_PMK_KEY false
 #define BAUD 115200
@@ -26,25 +26,25 @@ const int ARRAY_SIZE = 6;
 const int scanTime = 5; 
 const int MAX_ESP_NOW_MAC_LEN = 6;
 const int pixelPin = D1;
-// 按钮引脚定义
+
 const int buttonPinA = 0;
 const int buttonPinB = 1;
 const int buttonPinC = 2;
 const int buttonPinD = 5;
 const unsigned long timeoutDuration = 10000;  // 10 seconds
 
-// 校准范围
+
 const float breathRateValidRange[] = {10.0, 30.0};  
 const float heartRateValidRange[] = {40.0, 180.0};  
 const float distanceValidRange[] = {0.0, 5.0};  
 
-// BLE链表节点结构
+
 struct BLEAddressNode {
   String address;
   BLEAddressNode* next;
 };
 
-// BLE链表头
+
 BLEAddressNode* bleHead = nullptr;
 BLEAdvertisedDevice* myDevice = nullptr;
 BLEScan* pBLEScan = nullptr;
