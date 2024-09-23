@@ -56,8 +56,8 @@ Adafruit_NeoPixel pixels = Adafruit_NeoPixel(1, pixelPin, NEO_GRB + NEO_KHZ800);
 typedef struct mmWaveDeviceESPNOW{
   char BLE_ADDRESS[MAX_CHARACTERS_NUMBER];
   uint8_t MAC_Address[MAX_CHARACTERS_NUMBER];
-  bool mmWaveDevice_detection_Status;//是否检测到人
-  bool BLEDviec_Connect_Status;//是否连接了蓝牙设备
+  bool mmWaveDevice_detection_Status;
+  bool BLEDviec_Connect_Status;
 }mmWaveDeviceESPNOW;
 
 mmWaveDeviceESPNOW mmWaveDeviceESPNOW_A;
@@ -65,8 +65,8 @@ mmWaveDeviceESPNOW mmWaveDeviceESPNOW_A;
 mmWaveDeviceESPNOW mmWaveDeviceESPNOW_B;
 
 typedef struct global_variable{
-  bool global_mmWaveDevice_detection_Status;//是否检测到人
-  bool global_BLEDviec_Connect_Status;//是否连接了蓝牙设备,如果有一个设备连接到蓝牙地址，则全部都开灯
+  bool global_mmWaveDevice_detection_Status;
+  bool global_BLEDviec_Connect_Status;
 }global_variable;
 
 global_variable global_variable_A;
@@ -84,13 +84,12 @@ typedef struct mmWaveDeviceData{
 
 mmWaveDeviceData mmWaveDeviceDataLocal;
 
-// 链表节点结构
+
 struct MacNode {
-    uint8_t macAddress[MAX_ESP_NOW_MAC_LEN]; // 存储MAC地址
-    MacNode* next; // 指向下一个节点
+    uint8_t macAddress[MAX_ESP_NOW_MAC_LEN]; 
+    MacNode* next; 
 };
 
-// 函数声明
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status);
 void OnDataReceived(const esp_now_recv_info* info, const uint8_t* incomingDataBuffer, int len);
 bool initializeEspNow(const String &macAddress);
@@ -105,12 +104,11 @@ void inputMacAddress();
 void setupCommunication();
 
 
-// 全局变量
-MacNode* head = nullptr; // 链表头指针
-esp_now_peer_info_t peerInfo;  // 对等设备信息
-char inputBuffer[MAX_INPUT_LENGTH]; // 输入缓冲区
-int inputIndex = 0; // 输入索引
-uint8_t macArray[MAX_ESP_NOW_MAC_LEN]; // 存储转换后的MAC地址
+MacNode* head = nullptr; 
+esp_now_peer_info_t peerInfo;  
+char inputBuffer[MAX_INPUT_LENGTH]; 
+int inputIndex = 0; 
+uint8_t macArray[MAX_ESP_NOW_MAC_LEN]; 
 
 void mmWaveDeviceLocal_MACAddress_Requir() {
     WiFi.mode(WIFI_STA);
@@ -125,17 +123,16 @@ void mmWaveDeviceLocal_MACAddress_Requir() {
     WiFi.macAddress(mac);
     Serial.println();
     
-    // 打印 MAC 地址为 XX:XX:XX:XX:XX:XX 格式
     Serial.printf("MAC Address: %02X:%02X:%02X:%02X:%02X:%02X\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 }
 
-// 发送数据回调函数
+
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
     Serial.print("Last Packet Send Status: ");
     Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
 }
 
-// 接收数据回调函数
+
 void OnDataReceived(const esp_now_recv_info* info, const uint8_t* incomingDataBuffer, int len) {
     memcpy(&mmWaveDeviceESPNOW_A, incomingDataBuffer, sizeof(mmWaveDeviceESPNOW_A));
     Serial.print("Received data from: ");
@@ -147,19 +144,19 @@ void OnDataReceived(const esp_now_recv_info* info, const uint8_t* incomingDataBu
     Serial.print(mmWaveDeviceESPNOW_B.BLEDviec_Connect_Status);
 }
 
-// 初始化 ESP-NOW 并添加对等设备
+
 bool initializeEspNow(const String &macAddress) {
-    WiFi.mode(WIFI_STA);  // 设置为 Station 模式
+    WiFi.mode(WIFI_STA);  
 
     if (esp_now_init() != ESP_OK) {
         Serial.println("Error initializing ESP-NOW");
         return false;
     }
 
-    esp_now_register_send_cb(OnDataSent);  // 注册发送数据的回调函数
-    esp_now_register_recv_cb(OnDataReceived); // 注册接收数据的回调函数
+    esp_now_register_send_cb(OnDataSent);  
+    esp_now_register_recv_cb(OnDataReceived); 
 
-    // 解析输入的 MAC 地址
+   
     int macIndex = 0;
     char *token = strtok((char *)macAddress.c_str(), ":");
     while (token != nullptr && macIndex < 6) {
@@ -172,8 +169,8 @@ bool initializeEspNow(const String &macAddress) {
         return false;
     }
 
-    peerInfo.channel = 0;  // 使用当前打开的通道
-    peerInfo.encrypt = false;  // 未加密
+    peerInfo.channel = 0;  
+    peerInfo.encrypt = false;  
 
     if (esp_now_add_peer(&peerInfo) != ESP_OK) {
         Serial.println("Failed to add peer");
@@ -183,13 +180,13 @@ bool initializeEspNow(const String &macAddress) {
     return true;
 }
 
-// 发送数据
+
 void sendData() {
 
-  mmWaveDeviceESPNOW_A.mmWaveDevice_detection_Status = detectPresence();//发送毫米波雷达结果true代表有人
-  mmWaveDeviceESPNOW_A.BLEDviec_Connect_Status = BLE_CONNECT();//发送蓝牙连接结果，true代表连接成功
+  mmWaveDeviceESPNOW_A.mmWaveDevice_detection_Status = detectPresence();
+  mmWaveDeviceESPNOW_A.BLEDviec_Connect_Status = BLE_CONNECT();
 
-  esp_err_t result = esp_now_send(peerInfo.peer_addr, (uint8_t *)&mmWaveDeviceESPNOW_A, sizeof(mmWaveDeviceESPNOW_A));  // 发送
+  esp_err_t result = esp_now_send(peerInfo.peer_addr, (uint8_t *)&mmWaveDeviceESPNOW_A, sizeof(mmWaveDeviceESPNOW_A));  
 
   if (result == ESP_OK) {
       Serial.println("Sent with success");
@@ -198,17 +195,17 @@ void sendData() {
   }
 }
 
-// 添加 MAC 地址节点
+
 void addMacNode(uint8_t mac[]) {
-    MacNode* newNode = new MacNode; // 创建新节点
-    memcpy(newNode->macAddress, mac, MAX_ESP_NOW_MAC_LEN); // 复制MAC地址
-    newNode->next = head; // 新节点指向当前头节点
-    head = newNode; // 更新头节点
+    MacNode* newNode = new MacNode; 
+    memcpy(newNode->macAddress, mac, MAX_ESP_NOW_MAC_LEN); 
+    newNode->next = head; 
+    head = newNode; 
 }
 
-// 打印链表中的 MAC 地址
+
 void printMacList() {
-    MacNode* current = head; // 从头节点开始
+    MacNode* current = head; 
     int index = 0;
     while (current != nullptr) {
         Serial.print("The list MAC address is: ");
@@ -223,11 +220,11 @@ void printMacList() {
             }
         }
         Serial.println();
-        current = current->next; // 移动到下一个节点
+        current = current->next; 
     }
 }
 
-// 根据序列号删除节点
+
 void deleteMacNode(int index) {
     if (head == nullptr) {
         Serial.println("链表为空，无法删除。");
@@ -240,52 +237,50 @@ void deleteMacNode(int index) {
     for (int i = 0; i < index; i++) {
         if (current == nullptr) {
             Serial.println("无效的序列号。");
-            return; // 序列号无效
+            return;
         }
         previous = current;
-        current = current->next; // 移动到下一个节点
+        current = current->next;
     }
 
-    // 删除节点
+
     if (previous == nullptr) {
-        // 删除头节点
         head = current->next;
     } else {
-        previous->next = current->next; // 跳过当前节点
+        previous->next = current->next; 
     }
-    delete current; // 释放内存
+    delete current; 
     Serial.println("节点已删除。");
 }
 
-// 输入序列号并删除节点
 void inputDeleteMacAddress() {
-    printMacList(); // 打印当前链表
+    printMacList();
     Serial.print("请输入要删除的节点序列号: ");
     while (true) {
         if (Serial.available() > 0) {
-            int index = Serial.parseInt(); // 读取序列号
-            deleteMacNode(index); // 删除节点
-            return; // 退出函数
+            int index = Serial.parseInt(); 
+            deleteMacNode(index); 
+            return;
         }
     }
 }
 
-// 清理缓存
+
 void clearCache(char* information) {
-    memset(information, 0, MAX_INPUT_LENGTH); // 将整个缓冲区清零
-    inputIndex = 0; // 重置索引
+    memset(information, 0, MAX_INPUT_LENGTH);
+    inputIndex = 0; 
 }
 
-// 将输入的数据转换为 uint8_t 格式并添加到链表
+
 uint8_t* copyArray(char* input) {
-    // 清空 macArray
+
     memset(macArray, 0, sizeof(macArray));
 
     int bytesCopied = 0;
-    char* token = strtok(input, ","); // 使用 strtok 分割用户输入的字符串
+    char* token = strtok(input, ","); 
 
     while (token != NULL && bytesCopied < MAX_ESP_NOW_MAC_LEN) {
-        macArray[bytesCopied++] = strtol(token, NULL, 0); // 转换为 uint8_t 并存储
+        macArray[bytesCopied++] = strtol(token, NULL, 0);
         token = strtok(NULL, ","); 
     }
 
@@ -296,14 +291,14 @@ uint8_t* copyArray(char* input) {
         Serial.print(" ");
     }
     Serial.println();
-    addMacNode(macArray); // 添加到链表中
-    printMacList(); // 打印链表
+    addMacNode(macArray); 
+    printMacList(); 
     return macArray;
 }
 
 void inputMacAddress() {
     clearCache(inputBuffer);
-    inputIndex = 0; // 重置输入索引
+    inputIndex = 0; 
     
     Serial.println("Enter the MAC address of the target ESP32 (format: XX:XX:XX:XX:XX:XX):");
 
@@ -311,14 +306,13 @@ void inputMacAddress() {
         if (Serial.available() > 0) {
             char incomingByte = Serial.read(); 
 
-            // 检查是否接收到换行符
+ 
             if (incomingByte == '\n') {
                 inputBuffer[inputIndex] = '\0';
                 Serial.print("Your entered MAC address is: ");
                 Serial.println(inputBuffer); 
                 Serial.println("Are you sure (y/n)?");
-
-                // 处理确认输入
+入
                 while (true) {
                     if (Serial.available() > 0) {
                         char confirmation = Serial.read();
@@ -327,8 +321,8 @@ void inputMacAddress() {
                             copyArray(inputBuffer);
                             clearCache(inputBuffer);
 
-                            // 调用初始化 ESP-NOW
-                            if (initializeEspNow(inputBuffer)) {  // 初始化并添加对等设备
+                      
+                            if (initializeEspNow(inputBuffer)) {  
                                 Serial.print("Connected to: ");
                                 for (int i = 0; i < 6; i++) {
                                     Serial.printf("%02X", peerInfo.peer_addr[i]);
@@ -338,7 +332,7 @@ void inputMacAddress() {
                             } else {
                                 Serial.println("Failed to initialize ESP-NOW.");
                             }
-                            return; // 结束输入函数
+                            return; 
                         } else if (confirmation == 'n') {
                             Serial.println("Please re-enter your mmWave device MAC address:");
                             inputIndex = 0; 
@@ -355,7 +349,7 @@ void inputMacAddress() {
         }
     }
 }
-// 获取用户输入的 MAC 地址
+
 String getMacAddressInput() {
     Serial.println("Enter the MAC address of the target ESP32 (format: XX:XX:XX:XX:XX:XX):");
     String macInput;
@@ -364,15 +358,15 @@ String getMacAddressInput() {
         if (Serial.available()) {
             macInput = Serial.readStringUntil('\n');  
             macInput.trim(); 
-            return macInput;  // 返回获取到的 MAC 地址
+            return macInput; 
         }
     }
 }
 
-// 主初始化和发送函数
+
 void setupCommunication() {
-    String macInput = getMacAddressInput(); // 这里可以根据需要设置一个默认的 MAC 地址
-    if (initializeEspNow(macInput)) {  // 初始化并添加对等设备
+    String macInput = getMacAddressInput();
+    if (initializeEspNow(macInput)) { 
         Serial.print("Connected to: ");
         for (int i = 0; i < 6; i++) {
           Serial.printf("%02X", peerInfo.peer_addr[i]);
@@ -382,7 +376,7 @@ void setupCommunication() {
     }
 }
 
-// BLE 扫描回调类
+
 class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
 public:
     MyAdvertisedDeviceCallbacks(const String &address) : inputAddress(address) {}
@@ -392,70 +386,69 @@ public:
         if (advertisedDevice.getAddress().toString() == inputAddress) {
             Serial.println("Found my device! Connecting...");
             myDevice = new BLEAdvertisedDevice(advertisedDevice);
-            pBLEScan->stop();  // 停止扫描
+            pBLEScan->stop(); 
         }
     }
 
 private:
-    const String &inputAddress;  // 使用常量引用
+    const String &inputAddress;  
 };
 
-// BLE扫描配置
+
 void BLE_SCAN_CONFIG() {
     BLEDevice::init("");
-    pBLEScan = BLEDevice::getScan();  // 创建新扫描
-    pBLEScan->setActiveScan(true);  // 主动扫描
+    pBLEScan = BLEDevice::getScan();  
+    pBLEScan->setActiveScan(true);  
     pBLEScan->setInterval(100);
-    pBLEScan->setWindow(99);  // 小于或等于 setInterval 值
+    pBLEScan->setWindow(99);  
 }
 
-// 检查 MAC 地址格式
+
 bool isValidMacAddress(const String& address) {
     return address.length() == 17 && address.indexOf(':') > -1;
 }
 
-// 连接到 BLE 设备
+
 bool BLE_CONNECT() {
     if (myDevice != nullptr) {
         Serial.printf("Connecting to device: %s\n", myDevice->toString().c_str());
         
         BLEClient *pClient = BLEDevice::createClient();
-        unsigned long connectStartTime = millis();  // 记录连接开始时间
-        
+        unsigned long connectStartTime = millis();  
         while (millis() - connectStartTime < 10000) {
             if (pClient->connect(myDevice)) {
                 Serial.println("Connected to device!");
                 return true;
-                pClient->disconnect();  // 断开连接
+                pClient->disconnect();  
                 Serial.println("Disconnected from device.");
-                delete pClient;  // 释放客户端
+                delete pClient; 
             }
         }
         
         Serial.println("Connection timed out! Please input the address again.");
-        myDevice = nullptr;  // 重置设备
-        delete pClient;  // 确保客户端被释放
+        myDevice = nullptr; 
+        delete pClient;  
     } else {
         Serial.println("No device found to connect.");
         return false;
     }
 }
 
-// 执行 BLE 扫描和连接
+
 void BLE_SCAN_DRIVER(const String &inputAddress) {
     Serial.println("Starting BLE scan...");
     MyAdvertisedDeviceCallbacks callbacks(inputAddress);
     pBLEScan->setAdvertisedDeviceCallbacks(&callbacks);
     
-    pBLEScan->start(5, false);  // 扫描 5 秒
+    pBLEScan->start(5, false);  
     Serial.print("Devices found: ");
     Serial.println(pBLEScan->getResults()->getCount());
     Serial.println("Scan done!");
-    pBLEScan->clearResults();  // 清除结果
+    pBLEScan->clearResults();  
     delay(2000);
 }
 
-// 扫描并连接到设备
+
 void scanAndConnect(const String &address) {
     if (!isValidMacAddress(address)) {
         Serial.println("Invalid address format. Please input again in format E0:6D:17:7B:7D:A7:");
@@ -467,7 +460,7 @@ void scanAndConnect(const String &address) {
     BLE_CONNECT();
 }
 
-// 打印保存的 BLE 地址
+
 void printBLEAddresses() {
     Serial.println("Saved BLE Addresses:");
     BLEAddressNode* current = bleHead;
@@ -478,7 +471,7 @@ void printBLEAddresses() {
     }
 }
 
-// 删除指定索引的 BLE 地址
+
 void deleteBLEAddress(int index) {
     if (bleHead == nullptr) {
         Serial.println("No addresses to delete.");
@@ -496,16 +489,16 @@ void deleteBLEAddress(int index) {
         current = current->next;
     }
     if (previous == nullptr) {
-        bleHead = current->next;  // 删除头节点
+        bleHead = current->next; 
     } else {
-        previous->next = current->next;  // 删除中间或尾节点
+        previous->next = current->next;  
     }
     
     Serial.printf("Deleted address at index %d: %s\n", index, current->address.c_str());
-    delete current;  // 释放内存
+    delete current; 
 }
 
-// 按字母顺序插入 BLE 地址
+
 void insertBLEAddressSorted(const String &address) {
     BLEAddressNode* newNode = new BLEAddressNode();
     newNode->address = address;
@@ -524,33 +517,33 @@ void insertBLEAddressSorted(const String &address) {
     }
 }
 
-// 输入 BLE 地址
+
 void Input_BLEAddress() {
     if (Serial.available() > 0) {
-        String inputAddress = Serial.readStringUntil('\n');  // 读取用户输入的地址
-        inputAddress.trim();  // 去除多余空格
+        String inputAddress = Serial.readStringUntil('\n'); 
+        inputAddress.trim();  
         
         if (inputAddress.equalsIgnoreCase("check")) {
-            printBLEAddresses();  // 打印链表中的地址
+            printBLEAddresses();  
         } else if (inputAddress.equalsIgnoreCase("delete")) {
-            printBLEAddresses();  // 打印链表中的地址以供用户选择
+            printBLEAddresses();
             Serial.println("Enter index to delete:");
-            while (!Serial.available());  // 等待输入
-            int index = Serial.parseInt();  // 读取索引
-            deleteBLEAddress(index);  // 删除对应地址
+            while (!Serial.available());
+            int index = Serial.parseInt();  
+            deleteBLEAddress(index);  
         } else {
-            scanAndConnect(inputAddress);  // 执行扫描和连接
-            insertBLEAddressSorted(inputAddress);  // 将有效地址添加到链表
+            scanAndConnect(inputAddress); 
+            insertBLEAddressSorted(inputAddress);  
             Serial.printf("Address %s added to the list.\n", inputAddress.c_str());
         }
     }
 }
 
-// 按钮信号处理
+
 void BUTTON_SIGNA() {
     int buttonStateA = digitalRead(buttonPinA);
     if (buttonStateA == 1) {
-      mmWaveDeviceLocal_MACAddress_Requir();//输入MAC地址，自动ESP-NOW组网
+      mmWaveDeviceLocal_MACAddress_Requir();
       delay(200); 
     }
 }
@@ -567,7 +560,7 @@ void BUTTON_SIGNC() {
     int buttonStateC = digitalRead(buttonPinC);
     if (buttonStateC == 1) {
       Serial.println("Please input the Bluetooth address in format E0:6D:17:7B:7D:A7:");
-      Input_BLEAddress();//输入BLE地址，绑定设备
+      Input_BLEAddress();
       delay(200);
     }
 }
@@ -576,12 +569,12 @@ void BUTTON_SIGND() {
     int buttonStateD = digitalRead(buttonPinD);
     if (buttonStateD == 1) {
       Serial.println("Please input the Bluetooth address in format E0:6D:17:7B:7D:A7:");
-      Input_BLEAddress();//输入BLE地址，绑定设备
+      Input_BLEAddress();
       delay(200);
     }
 }
 
-// mmWave 设备传感器驱动
+
 void mmWaveDeviceSensorDriver() {
     mmWave.begin(&mmWaveSerial);
     pixels.begin();
@@ -595,8 +588,8 @@ void mmWaveDeviceSensorDriver() {
 
 float getUserBreathRateOffset() {
     Serial.println("Enter breath rate offset:");
-    while (!Serial.available()); // 等待用户输入
-    return Serial.parseFloat(); // 读取并返回偏移量
+    while (!Serial.available());
+    return Serial.parseFloat(); 
 }
 
 float getUserHeartRateOffset() {
@@ -612,64 +605,64 @@ float getUserDistanceOffset() {
 }
 
 void calibrateData() {
-    // 这里可以通过用户输入或其他方式获取校准值
-    mmWaveDeviceDataLocal.breathRateOffset = getUserBreathRateOffset();  // 用户输入呼吸率偏移
-    mmWaveDeviceDataLocal.heartRateOffset = getUserHeartRateOffset();    // 用户输入心率偏移
-    mmWaveDeviceDataLocal.distanceOffset = getUserDistanceOffset();      // 用户输入距离偏移
+   
+    mmWaveDeviceDataLocal.breathRateOffset = getUserBreathRateOffset();
+    mmWaveDeviceDataLocal.heartRateOffset = getUserHeartRateOffset();  
+    mmWaveDeviceDataLocal.distanceOffset = getUserDistanceOffset();  
 }
 
 
 int detectPresence() {
-    // Update the mmWave data
+  
     if (mmWave.update(100)) {
         bool validData = false;
 
-        // Check breath rate
+      
         if (mmWave.getBreathRate(mmWaveDeviceDataLocal.breath_rate) && mmWaveDeviceDataLocal.breath_rate > 0) {
-            mmWaveDeviceDataLocal.breath_rate += mmWaveDeviceDataLocal.breathRateOffset;  // 应用偏移
+            mmWaveDeviceDataLocal.breath_rate += mmWaveDeviceDataLocal.breathRateOffset;  
             if (mmWaveDeviceDataLocal.breath_rate >= breathRateValidRange[0] && mmWaveDeviceDataLocal.breath_rate <= breathRateValidRange[1]) {
                 Serial.printf("breath_rate: %.2f\n", mmWaveDeviceDataLocal.breath_rate);
                 validData = true;
             }
         }
 
-        // Check heart rate
+        
         if (mmWave.getHeartRate(mmWaveDeviceDataLocal.heart_rate) && mmWaveDeviceDataLocal.heart_rate > 0) {
-            mmWaveDeviceDataLocal.heart_rate += mmWaveDeviceDataLocal.heartRateOffset;  // 应用偏移
+            mmWaveDeviceDataLocal.heart_rate += mmWaveDeviceDataLocal.heartRateOffset;  
             if (mmWaveDeviceDataLocal.heart_rate >= heartRateValidRange[0] && mmWaveDeviceDataLocal.heart_rate <= heartRateValidRange[1]) {
                 Serial.printf("heart_rate: %.2f\n", mmWaveDeviceDataLocal.heart_rate);
                 validData = true;
             }
         }
 
-        // Check distance
+        
         if (mmWave.getDistance(mmWaveDeviceDataLocal.distance) && mmWaveDeviceDataLocal.distance > 0) {
-            mmWaveDeviceDataLocal.distance += mmWaveDeviceDataLocal.distanceOffset;  // 应用偏移
+            mmWaveDeviceDataLocal.distance += mmWaveDeviceDataLocal.distanceOffset;  
             if (mmWaveDeviceDataLocal.distance >= distanceValidRange[0] && mmWaveDeviceDataLocal.distance <= distanceValidRange[1]) {
                 Serial.printf("distance: %.2f\n", mmWaveDeviceDataLocal.distance);
                 validData = true;
             }
         }
 
-        // Control LED and return signal based on sensor readings
+       
         if (validData) {
-            // Update the last valid data time
+     
             mmWaveDeviceDataLocal.lastValidDataTime = millis();
-            // Light blue LED if valid data is present
-            pixels.setPixelColor(0, pixels.Color(0, 0, 125));  // Dim blue
+         
+            pixels.setPixelColor(0, pixels.Color(0, 0, 125)); 
             pixels.show();
-            return 1;  // Presence detected
+            return 1;  
         } else {
-            // Check if 10 seconds have passed since the last valid data
+          
             if (millis() - mmWaveDeviceDataLocal.lastValidDataTime >= timeoutDuration) {
-                // Light red LED if no valid data for 10 seconds
-                pixels.setPixelColor(0, pixels.Color(125, 0, 0));  // Dim red
+            
+                pixels.setPixelColor(0, pixels.Color(125, 0, 0)); 
                 pixels.show();
-                return 0;  // No presence detected
+                return 0;  
             }
         }
     }
-    return -1;  // Data not updated yet
+    return -1;  
 }
 
 // 检测信号
@@ -689,20 +682,19 @@ void setup() {
     pinMode(buttonPinB, INPUT);
     pinMode(buttonPinC, INPUT);
     // pinMode(buttonPinD, INPUT);
-    BUTTON_SIGNA();//获取MAC地址
-    // setupCommunication();  // 初始化通信
-    // 初始化 mmWave 传感器
+    BUTTON_SIGNA();
+    // setupCommunication();  
     // mmWaveDeviceSensorDriver();
     Serial.println("Setup complete. Please input Bluetooth address.");
 }
 
 void loop() {
-    sendData();  // 发送数据
-    Input_BLEAddress();  // 持续监听用户输入
-    BUTTON_SIGNA();//获取MAC地址
-    BUTTON_SIGNB();//添加MAC地址
-    BUTTON_SIGNC();//连接BLE
+    sendData(); 
+    Input_BLEAddress();  
+    BUTTON_SIGNA();
+    BUTTON_SIGNB();
+    BUTTON_SIGNC();
     // BUTTON_SIGND();
-    // detection_signal();  // 检测信号
-    delay(5000); // 每5秒发送一次数据
+    // detection_signal();  
+    delay(5000); 
 }
